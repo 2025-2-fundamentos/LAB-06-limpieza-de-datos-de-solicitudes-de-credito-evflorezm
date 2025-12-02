@@ -13,3 +13,51 @@ def pregunta_01():
     El archivo limpio debe escribirse en "files/output/solicitudes_de_credito.csv"
 
     """
+
+import pandas as pd
+import os
+import re
+
+arc_entrada = 'files/input/solicitudes_de_credito.csv'
+arc_salida = 'files/output/solicitudes_de_credito.csv'
+
+df = pd.read_csv(arc_entrada, sep=';', index_col=0)
+
+df['sexo'] = df['sexo'].str.lower()
+df['tipo_de_emprendimiento'] = df['tipo_de_emprendimiento'].str.lower().str.strip()
+    
+df['barrio'] = df['barrio'].str.lower()
+df['barrio'] = df['barrio'].str.replace('_', ' ', regex=False).str.replace('-', ' ', regex=False)
+
+df['idea_negocio'] = df['idea_negocio'].str.lower()
+df['idea_negocio'] = df['idea_negocio'].str.replace('_', ' ', regex=False).str.replace('-', ' ', regex=False).str.strip()
+
+df['monto_del_credito'] = df['monto_del_credito'].str.strip()
+df['monto_del_credito'] = df['monto_del_credito'].str.replace('$', '', regex=False)
+df['monto_del_credito'] = df['monto_del_credito'].str.replace(',', '', regex=False)
+df['monto_del_credito'] = df['monto_del_credito'].str.replace('.00', '', regex=False)
+df['monto_del_credito'] = pd.to_numeric(df['monto_del_credito'], errors='coerce')
+
+df['línea_credito'] = df['línea_credito'].str.lower()
+df['línea_credito'] = df['línea_credito'].str.replace('_', ' ').str.replace('-', ' ').str.strip()
+
+
+df["fecha_de_beneficio"] = pd.to_datetime(
+            df["fecha_de_beneficio"], format="%d/%m/%Y", errors="coerce"
+        ).combine_first(pd.to_datetime(df["fecha_de_beneficio"], format="%Y/%m/%d", errors="coerce"))
+
+
+df["comuna_ciudadano"] = df["comuna_ciudadano"].astype(int)
+
+df=df.drop_duplicates()
+df.dropna(inplace=True)
+
+
+output_directory = os.path.dirname(arc_salida)
+os.makedirs(output_directory, exist_ok=True)
+df.to_csv(arc_salida, sep=';', index=False, encoding="utf-8")
+
+print("Archivo limpio guardado en:", arc_salida)
+
+
+pregunta_01()
